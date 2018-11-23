@@ -54,73 +54,83 @@ class qtype_ordering_question_test extends advanced_testcase {
         return ['response_' . $question->id => implode(',', $md5keys)];
     }
 
-    public function test_grading() {
+    public function test_grading_all_or_nothing () {
         /** @var qtype_ordering_question $question */
         $question = test_question_maker::make_question('ordering');
-        // Gradingtype is set to GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT by default in helper.php
+        // Zero grade on any error (no partial scroe at all, it is either 1 or 0).
+        $question->options->gradingtype = qtype_ordering_question::GRADING_ALL_OR_NOTHING;
         $question->start_attempt(new question_attempt_pending_step(), 1);
 
         $this->assertEquals([1, question_state::$gradedright],
-                $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
-
-        $this->assertGreaterThan([0, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
-        $this->assertLessThan([1, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
-
+                $question->grade_response($this->get_response($question,
+                        ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
         $this->assertEquals([0., question_state::$gradedwrong],
-                $question->grade_response($this->get_response($question, ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
-
-        $this->assertLessThan([1, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Oriented', 'Environment', 'Modular', 'Learning', 'Object', 'Dynamic'])));
-        $this->assertGreaterThan([0, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Oriented', 'Environment', 'Modular', 'Learning', 'Object', 'Dynamic'])));
-
-        // Set grading type to 'all or nothing'.
-        $question->options->gradingtype = qtype_ordering_question::GRADING_ALL_OR_NOTHING;
-        $this->assertEquals([1, question_state::$gradedright],
-                $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
-        $this->assertEquals([0., question_state::$gradedwrong],
-                $question->grade_response($this->get_response($question, ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
+                $question->grade_response($this->get_response($question,
+                        ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
         $this->assertEquals([0, question_state::$gradedwrong],
-                $question->grade_response($this->get_response($question, ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
-
-        // Set grading type to 'absolute position'.
+                $question->grade_response($this->get_response($question,
+                        ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
+    }
+    public function test_grading_absolute_position () {
+        /** @var qtype_ordering_question $question */
+        $question = test_question_maker::make_question('ordering');
+        // Counts items, placed into right absolute place.
         $question->options->gradingtype = qtype_ordering_question::GRADING_ABSOLUTE_POSITION;
+        $question->start_attempt(new question_attempt_pending_step(), 1);
         // Every item is in the correct position.
         $this->assertEquals([1, question_state::$gradedright],
-                $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
+                $question->grade_response($this->get_response($question,
+                        ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
         // None of the items are in the correct position.
         $this->assertEquals([0., question_state::$gradedwrong],
-                $question->grade_response($this->get_response($question, ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
+                $question->grade_response($this->get_response($question,
+                        ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
         // 4 out of 6 items are in the correct position.
         $this->assertLessThan([0.67, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Environment','Object', 'Oriented',  'Dynamic', 'Learning', 'Modular'])));
+                $question->grade_response($this->get_response($question,
+                        ['Environment', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Modular'])));
         $this->assertGreaterThan([0.66, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Environment','Object', 'Oriented',  'Dynamic', 'Learning', 'Modular'])));
+                $question->grade_response($this->get_response($question,
+                        ['Environment', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Modular'])));
         // 1 out of 6 item is in the correct position.
         $this->assertLessThan([0.17, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
+                $question->grade_response($this->get_response($question,
+                        ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
         $this->assertGreaterThan([0.16, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
-
-        // Set grading type to 'relative next exclude last'.
+                $question->grade_response($this->get_response($question,
+                        ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
+    }
+    public function test_grading_relative_next_exclude_last () {
+        /** @var qtype_ordering_question $question */
+        $question = test_question_maker::make_question('ordering');
+        // Every sequential pair in right order is graded (last pair is excluded).
         $question->options->gradingtype = qtype_ordering_question::GRADING_RELATIVE_NEXT_EXCLUDE_LAST;
+        $question->start_attempt(new question_attempt_pending_step(), 1);
+
         // Every item is in the correct position.
         $this->assertEquals([1, question_state::$gradedright],
-                $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
+                $question->grade_response($this->get_response($question,
+                        ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
         // None of the items are in the correct position and there is not relative next.
         $this->assertEquals([0., question_state::$gradedwrong],
-                $question->grade_response($this->get_response($question, ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
+                $question->grade_response($this->get_response($question,
+                        ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
         // 4 out of 6 items are in the correct position with relative next
         $this->assertEquals([0.6, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Environment','Object', 'Oriented',  'Dynamic', 'Learning', 'Modular'])));
+                $question->grade_response($this->get_response($question,
+                        ['Environment', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Modular'])));
         // 2 out of 6 item are in the correct position with relative next.
         $this->assertEquals([0.4, question_state::$gradedpartial],
-                $question->grade_response($this->get_response($question, ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
+                $question->grade_response($this->get_response($question,
+                        ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
 
-        // Set grading type to 'relative next include last'.
+    }
+    public function test_grading_relative_next_include_last () {
+        /** @var qtype_ordering_question $question */
+        $question = test_question_maker::make_question('ordering');
+        // Every sequential pair in right order is graded (last pair is included).
         $question->options->gradingtype = qtype_ordering_question::GRADING_RELATIVE_NEXT_INCLUDE_LAST;
+        $question->start_attempt(new question_attempt_pending_step(), 1);
         // Every item is in the correct position.
         $this->assertEquals([1, question_state::$gradedright],
                 $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
@@ -131,8 +141,13 @@ class qtype_ordering_question_test extends advanced_testcase {
         $this->assertEquals([0.5, question_state::$gradedpartial],
                 $question->grade_response($this->get_response($question, ['Environment','Object', 'Oriented',  'Dynamic', 'Learning', 'Modular'])));
 
-        // Set grading type to 'relative one previous and next'.
+    }
+    public function test_grading_relative_one_previous_and_next () {
+        /** @var qtype_ordering_question $question */
+        $question = test_question_maker::make_question('ordering');
+        // Single answers that are placed before and after each answer is graded if in right order.
         $question->options->gradingtype = qtype_ordering_question::GRADING_RELATIVE_ONE_PREVIOUS_AND_NEXT;
+        $question->start_attempt(new question_attempt_pending_step(), 1);
         // All items are in the correct position.
         $this->assertEquals([1, question_state::$gradedright],
                         $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
@@ -146,24 +161,34 @@ class qtype_ordering_question_test extends advanced_testcase {
                 $question->grade_response($this->get_response($question, ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
 
 
-        // Set grading type to 'relative all previous and next'.
+    }
+    public function test_grading_relative_all_previous_and_next () {
+        /** @var qtype_ordering_question $question */
+        $question = test_question_maker::make_question('ordering');
+        // All answers that are placed before and after each answer is graded if in right order.
         $question->options->gradingtype = qtype_ordering_question::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT;
+        $question->start_attempt(new question_attempt_pending_step(), 1);
         // All items are in the correct position.
         $this->assertEquals([1, question_state::$gradedright],
                         $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
         // None of the items are in the correct position.
         $this->assertEquals([0., question_state::$gradedwrong],
                 $question->grade_response($this->get_response($question, ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
-        //
-        $this->assertEquals([0.6, question_state::$gradedpartial],
+        // Partially correct.
+        $this->assertEqual([0.6, question_state::$gradedpartial],
                 $question->grade_response($this->get_response($question, ['Oriented', 'Object', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
         $this->assertLessThan([0.7, question_state::$gradedpartial],
                 $question->grade_response($this->get_response($question, ['Object', 'Oriented', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
         $this->assertGreaterThan([0.6, question_state::$gradedpartial],
                 $question->grade_response($this->get_response($question, ['Object', 'Oriented', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
 
-        // Set grading type to 'relative all previous and next'.
+    }
+    public function test_grading_longest_ordered_subset () {
+        /** @var qtype_ordering_question $question */
+        $question = test_question_maker::make_question('ordering');
+        // Only longest ordered subset is graded.
         $question->options->gradingtype = qtype_ordering_question::GRADING_LONGEST_ORDERED_SUBSET;
+        $question->start_attempt(new question_attempt_pending_step(), 1);
         // All items are in the correct position.
         $this->assertEquals([1, question_state::$gradedright],
                 $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
@@ -177,22 +202,32 @@ class qtype_ordering_question_test extends advanced_testcase {
                 $question->grade_response($this->get_response($question, ['Object', 'Oriented', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
 
 
-        // Set grading type to 'relative all previous and next'.
+    }
+    public function test_grading_longest_contiguous_subset () {
+        /** @var qtype_ordering_question $question */
+        $question = test_question_maker::make_question('ordering');
+        // Only longest ordered and contiguous subset is graded.
         $question->options->gradingtype = qtype_ordering_question::GRADING_LONGEST_CONTIGUOUS_SUBSET;
+        $question->start_attempt(new question_attempt_pending_step(), 1);
         // All items are in the correct position.
         $this->assertEquals([1, question_state::$gradedright],
                 $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
         // None of the items are in the correct position.
         $this->assertEquals([0., question_state::$gradedwrong],
                 $question->grade_response($this->get_response($question, ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
-        // 5 items make the longest ordered subset and the result is 5 out of 5 (0.8333333333....)
+        // 5 items make the longest ordered subset and the result is 5 out of 6 (0.8333333333....)
         $this->assertLessThan([0.84, question_state::$gradedpartial],
                 $question->grade_response($this->get_response($question, ['Object', 'Oriented', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
         $this->assertGreaterThan([0.8, question_state::$gradedpartial],
                 $question->grade_response($this->get_response($question, ['Object', 'Oriented', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
 
-        // Set grading type to 'relative all previous and next'.
+    }
+    public function test_grading_relative_to_correct () {
+        /** @var qtype_ordering_question $question */
+        $question = test_question_maker::make_question('ordering');
+        // Items are graded relative to their position in the correct answer.
         $question->options->gradingtype = qtype_ordering_question::GRADING_RELATIVE_TO_CORRECT;
+        $question->start_attempt(new question_attempt_pending_step(), 1);
         // All items are in the correct position.
         $this->assertEquals([1, question_state::$gradedright],
                 $question->grade_response($this->get_response($question, ['Modular', 'Object', 'Oriented', 'Dynamic', 'Learning', 'Environment'])));
@@ -200,7 +235,7 @@ class qtype_ordering_question_test extends advanced_testcase {
         // TODO: This grading method is very generous. It has to be chnaged.
         $this->assertEquals([0.4, question_state::$gradedpartial],
                 $question->grade_response($this->get_response($question, ['Environment', 'Learning', 'Dynamic', 'Oriented', 'Object', 'Modular'])));
-        //
+ 
         $this->assertLessThan([0.7, question_state::$gradedpartial],
                 $question->grade_response($this->get_response($question, ['Object', 'Oriented', 'Dynamic', 'Learning', 'Environment', 'Modular'])));
         $this->assertGreaterThan([0.6, question_state::$gradedpartial],
