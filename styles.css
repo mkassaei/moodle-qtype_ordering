@@ -1,6 +1,13 @@
 /* ensure container covers the draggable items */
 .que.ordering div.answer.ordering { overflow: auto; }
 
+.item-moving {
+    opacity: 0.7;
+    border-color: #0a0;
+    box-shadow: 0 0 5px 5px rgba(255, 255, 150, 1);
+}
+
+
 .que.ordering ul.sortablelist {
     border           : 1px solid #ccc;
     float            : left;
