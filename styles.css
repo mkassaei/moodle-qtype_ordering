@@ -1,6 +1,14 @@
 /* ensure container covers the draggable items */
 .que.ordering div.answer.ordering { overflow: auto; }
 
+.item-moving {
+    opacity: 0.5;
+    font-weight: bold;
+    border-color: #0a0;
+    /** background-color: rgba(255, 255, 150, 1); */
+    box-shadow: 0 0 5px 5px rgba(255, 255, 150, 1);
+}
+
 .que.ordering ul.sortablelist {
     border           : 1px solid #ccc;
     float            : left;
@@ -32,6 +40,10 @@
     cursor           : move;
     touch-action     : none;
     -ms-touch-action : none;
+}
+.beingdragged {
+    z-index: 3;
+    box-shadow: 4px 4px 6px #000;
 }
 .que.ordering ul.sortablelist li.horizontal {
     float            : left;

@@ -93,7 +93,14 @@ class qtype_ordering_renderer extends qtype_with_combined_feedback_renderer {
         } else if (method_exists($PAGE->requires, 'js_call_amd')) {
             // Moodle >= 2.9
             $params = array($sortableid, $responseid, $ablockid, $axis);
-            $PAGE->requires->js_call_amd('qtype_ordering/ordering', 'init', $params);
+            //$PAGE->requires->js_call_amd('qtype_ordering/ordering', 'init', $params);
+            $PAGE->requires->strings_for_js(array(
+                    'dragorderafterx',
+                    'dragorderbeforex',
+                    'dragorderintox',
+                    'dragordermovex'
+            ), 'qtype_ordering');
+            $PAGE->requires->js_call_amd('qtype_ordering/reorder', 'init', $params);
         } else {
             // Moodle <= 2.8
             $script = "\n";

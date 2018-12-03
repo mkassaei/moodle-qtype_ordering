@@ -30,6 +30,11 @@ $string['pluginnameediting'] = 'Editing an Ordering question';
 $string['pluginnamesummary'] = 'Put jumbled items into a meaningful order.';
 $string['privacy:metadata'] = 'The ordering question type plugin does not store any personal data.';
 
+$string['dragorderafterx'] = 'Move to after \'{$a}\'';
+$string['dragorderbeforex'] = 'Move to before \'{$a}\'';
+$string['dragorderintox'] = 'Move into \'{$a}\'';
+$string['dragordermovex'] = 'Move \'{$a}\'';
+
 $string['editingordering'] = 'Editing ordering question';
 $string['addingordering'] = 'Adding a Ordering question';
 
