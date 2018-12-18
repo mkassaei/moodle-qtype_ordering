@@ -4,13 +4,14 @@
 .item-moving {
     opacity: 0.5;
     font-weight: bold;
+    padding-left: 1px;
+    padding-top: 1px;
     border-color: #0a0;
     /** background-color: rgba(255, 255, 150, 1); */
     box-shadow: 0 0 5px 5px rgba(255, 255, 150, 1);
 }
 
 .que.ordering ul.sortablelist {
-    border           : 1px solid #ccc;
     float            : left;
     font-family      : Arial, sans-serif;
     font-size        : 13px;
@@ -18,18 +19,10 @@
     margin           : 0px;
     margin-left      : 5px;
     padding          : 4px 4px 0 4px;
-    width            : 80%;
-}
-.que.ordering ul.sortablelist,
-.que.ordering ul.sortablelist li {
-    -webkit-border-radius: 6px; /* Safari and Chrome */
-    -moz-border-radius: 6px;   /* Firefox */
-    -o-border-radius: 6px;    /* Opera */
-    border-radius: 6px;      /* CSS3 */
 }
 .que.ordering ul.sortablelist li {
-    background-color : #eeeeee;
-    border           : 1px solid #cccccc;
+    background-color : #ffffff;
+    border           : 1px solid #000000;
     border-image     : initial;
     list-style-type  : none;
     margin           : 4px;
@@ -42,8 +35,10 @@
     -ms-touch-action : none;
 }
 .beingdragged {
+    /*
     z-index: 3;
     box-shadow: 4px 4px 6px #000;
+    */
 }
 .que.ordering ul.sortablelist li.horizontal {
     float            : left;
@@ -51,6 +46,7 @@
 .que.ordering ul.sortablelist li.vertical {
     min-height       : 18px;
 }
+
 .que.ordering ul.sortablelist li.correct {
     background-color : #dff4d8; /* light green */
     border-color     : #99ff66; /* gentle green */
@@ -71,18 +67,6 @@
     background-color : #ffdddd; /* light red */
     border-color     : #ff7373; /* gentle red */
 }
-.que.ordering ul.sortablelist li.correct,
-.que.ordering ul.sortablelist li.partial66,
-.que.ordering ul.sortablelist li.partial33,
-.que.ordering ul.sortablelist li.partial00,
-.que.ordering ul.sortablelist li.incorrect,
-.que.ordering ul.sortablelist li.unscored {
-    border-style     : solid;
-    border-width     : 4px;
-    margin-bottom    : 4px;
-    margin-top       : 4px;
-}
-
 /*
     force containing DIV to cover the floating LI elements
     Note: if you add "overflow:auto;  to "ol.correctorder"
