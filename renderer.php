@@ -79,11 +79,11 @@ class qtype_ordering_renderer extends qtype_with_combined_feedback_renderer {
         if ($options->readonly) {
             // Items cannot be dragged in readonly mode.
         } else if (method_exists($PAGE->requires, 'js_call_amd')) {
-            // Moodle >= 2.9
+            // Moodle >= 2.9.
             $params = array($sortableid, $responseid, $axis);
             $PAGE->requires->js_call_amd('qtype_ordering/reorder', 'init', $params);
         } else {
-            // Moodle <= 2.8
+            // Moodle <= 2.8.
             $script = "\n";
             $script .= "//<![CDATA[\n";
             $script .= "if (window.$) {\n";
@@ -113,8 +113,8 @@ class qtype_ordering_renderer extends qtype_with_combined_feedback_renderer {
         $printeditems = false;
         if (count($currentresponse)) {
 
-            // initialize the cache for the  answers' md5keys
-            // this represents the initial position of the items
+            // Initialize the cache for the  answers' md5keys
+            // this represents the initial position of the items.
             $md5keys = array();
 
             // Set layout class.
@@ -132,21 +132,21 @@ class qtype_ordering_renderer extends qtype_with_combined_feedback_renderer {
 
                 if ($printeditems == false) {
                     $printeditems = true;
-                    $result .= html_writer::start_tag('div', array('class' => 'ablock', 'id' => $ablockid, 'contenteditable' => 'true'));
-                    $result .= html_writer::start_tag('div', array('class' => 'answer ordering', 'contenteditable' => 'false'));
-                    $result .= html_writer::start_tag('ul',  array('class' => 'sortablelist', 'id' => $sortableid));
+                    $result .= html_writer::start_tag('div', ['class' => 'ablock', 'id' => $ablockid, 'contenteditable' => 'true']);
+                    $result .= html_writer::start_tag('div', ['class' => 'answer ordering', 'contenteditable' => 'false']);
+                    $result .= html_writer::start_tag('ul',  ['class' => 'sortablelist', 'id' => $sortableid]);
                 }
 
                 // Set the CSS class and correctness img for this response.
                 switch ($options->correctness) {
 
-                    case question_display_options::HIDDEN: // =0
-                    case question_display_options::EDITABLE: // =2
+                    case question_display_options::HIDDEN:
+                    case question_display_options::EDITABLE:
                         $class = 'sortableitem';
                         $img = '';
                         break;
 
-                    case question_display_options::VISIBLE: // =1
+                    case question_display_options::VISIBLE:
                         $score = $question->get_ordering_item_score($position, $answerid);
                         list($score, $maxscore, $fraction, $percent, $class) = $score;
                         $img = $this->feedback_image($fraction);
@@ -170,8 +170,8 @@ class qtype_ordering_renderer extends qtype_with_combined_feedback_renderer {
                 $params = array('class' => $class, 'id' => $answer->md5key);
                 $result .= html_writer::tag('li', $img.$answertext, $params);
 
-                // cache this answer key
-                $md5keys[] =  $question->answers[$answerid]->md5key;
+                // Cache this answer key.
+                $md5keys[] = $question->answers[$answerid]->md5key;
             }
         }
 
@@ -220,7 +220,7 @@ class qtype_ordering_renderer extends qtype_with_combined_feedback_renderer {
             $plugin = 'qtype_ordering';
             $question = $qa->get_question();
 
-            // show grading details if they are required
+            // How grading details if they are required.
             if ($question->options->showgrading) {
 
                 // Fetch grading type.
