@@ -66,6 +66,18 @@ class qtype_ordering_question extends question_graded_automatically {
     /** @var int Items are graded relative to their position in the correct answer */
     const GRADING_RELATIVE_TO_CORRECT = 7;
 
+    /** @var array of answerids in correct order */
+    protected $correctinfo = null;
+
+    /** @var array of answerids in order of current answer*/
+    protected $currentinfo = null;
+
+    /** @var array of scored for every item */
+    protected $itemscores = array();
+
+    /** @var bool True if answer is 100% correct */
+    protected $allcorrect = null;
+
     // Fields from "qtype_ordering_options" table.
     /** @var string */
     public $correctfeedback;
@@ -91,6 +103,194 @@ class qtype_ordering_question extends question_graded_automatically {
 
     /** @var array contatining current order of answerids */
     public $currentresponse;
+
+    /**
+     * Fills $this->correctinfo and $this->currentinfo depending on question options.
+     *
+     */
+    protected function get_response_info() {
+
+        $gradingtype = $this->options->gradingtype;
+        switch ($gradingtype) {
+
+            case qtype_ordering_question::GRADING_ALL_OR_NOTHING:
+            case qtype_ordering_question::GRADING_ABSOLUTE_POSITION:
+            case qtype_ordering_question::GRADING_RELATIVE_TO_CORRECT:
+                $this->correctinfo = $this->correctresponse;
+                $this->currentinfo = $this->currentresponse;
+                break;
+
+            case qtype_ordering_question::GRADING_RELATIVE_NEXT_EXCLUDE_LAST:
+            case qtype_ordering_question::GRADING_RELATIVE_NEXT_INCLUDE_LAST:
+                $lastitem = ($gradingtype == qtype_ordering_question::GRADING_RELATIVE_NEXT_INCLUDE_LAST);
+                $this->correctinfo = $this->get_next_answerids($this->correctresponse, $lastitem);
+                $this->currentinfo = $this->get_next_answerids($this->currentresponse, $lastitem);
+                break;
+
+            case qtype_ordering_question::GRADING_RELATIVE_ONE_PREVIOUS_AND_NEXT:
+            case qtype_ordering_question::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT:
+                $all = ($gradingtype == qtype_ordering_question::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT);
+                $this->correctinfo = $this->get_previous_and_next_answerids($this->correctresponse, $all);
+                $this->currentinfo = $this->get_previous_and_next_answerids($this->currentresponse, $all);
+                break;
+
+            case qtype_ordering_question::GRADING_LONGEST_ORDERED_SUBSET:
+            case qtype_ordering_question::GRADING_LONGEST_CONTIGUOUS_SUBSET:
+                $this->correctinfo = $this->correctresponse;
+                $this->currentinfo = $this->currentresponse;
+                $contiguous = ($gradingtype == qtype_ordering_question::GRADING_LONGEST_CONTIGUOUS_SUBSET);
+                $subset = $this->get_ordered_subset($contiguous);
+                foreach ($this->currentinfo as $position => $answerid) {
+                    if (array_search($position, $subset) === false) {
+                        $this->currentinfo[$position] = 0;
+                    } else {
+                        $this->currentinfo[$position] = 1;
+                    }
+                }
+                break;
+        }
+    }
+
+    /**
+     * Return true if answer is 100% correct.
+     *
+     * @return bool
+     */
+    protected function is_all_correct() {
+        if ($this->allcorrect === null) {
+            // Use "==" to determine if the two "info" arrays are identical.
+            $this->allcorrect = ($this->correctinfo == $this->currentinfo);
+        }
+        return $this->allcorrect;
+    }
+
+    /**
+     * Returns score for one item depending on correctness and question settings.
+     *
+     * @param int $position
+     * @param int $answerid
+     * @return array (score, maxscore, fraction, percent, class, img)
+     */
+    public function get_ordering_item_score($position, $answerid) {
+        if (! isset($this->itemscores[$position])) {
+
+            if ($this->correctinfo === null || $this->currentinfo === null) {
+                $this->get_response_info();
+            }
+
+            $correctinfo = $this->correctinfo;
+            $currentinfo = $this->currentinfo;
+
+            $score    = 0;    // Actual score for this item.
+            $maxscore = null; // Max score for this item.
+            $fraction = 0.0;  // Fraction $score / $maxscore.
+            $percent  = 0;    // 100 * $fraction.
+            $class    = '';   // CSS class.
+            $img      = '';   // Icon to show correctness.
+
+            switch ($this->options->gradingtype) {
+
+                case qtype_ordering_question::GRADING_ALL_OR_NOTHING:
+                    if ($this->is_all_correct()) {
+                        $score = 1;
+                        $maxscore = 1;
+                    }
+                    break;
+
+                case qtype_ordering_question::GRADING_ABSOLUTE_POSITION:
+                    if (isset($correctinfo[$position])) {
+                        if ($correctinfo[$position] == $answerid) {
+                            $score = 1;
+                        }
+                        $maxscore = 1;
+                    }
+                    break;
+
+                case qtype_ordering_question::GRADING_RELATIVE_NEXT_EXCLUDE_LAST:
+                case qtype_ordering_question::GRADING_RELATIVE_NEXT_INCLUDE_LAST:
+                    if (isset($correctinfo[$answerid])) {
+                        if (isset($currentinfo[$answerid]) && $currentinfo[$answerid] == $correctinfo[$answerid]) {
+                            $score = 1;
+                        }
+                        $maxscore = 1;
+                    }
+                    break;
+
+                case qtype_ordering_question::GRADING_RELATIVE_ONE_PREVIOUS_AND_NEXT:
+                case qtype_ordering_question::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT:
+                    if (isset($correctinfo[$answerid])) {
+                        $maxscore = 0;
+                        $prev = $correctinfo[$answerid]->prev;
+                        $maxscore += count($prev);
+                        $prev = array_intersect($prev, $currentinfo[$answerid]->prev);
+                        $score += count($prev);
+                        $next = $correctinfo[$answerid]->next;
+                        $maxscore += count($next);
+                        $next = array_intersect($next, $currentinfo[$answerid]->next);
+                        $score += count($next);
+                    }
+                    break;
+
+                case qtype_ordering_question::GRADING_LONGEST_ORDERED_SUBSET:
+                case qtype_ordering_question::GRADING_LONGEST_CONTIGUOUS_SUBSET:
+                    if (isset($correctinfo[$position])) {
+                        if (isset($currentinfo[$position])) {
+                            $score = $currentinfo[$position];
+                        }
+                        $maxscore = 1;
+                    }
+                    break;
+
+                case qtype_ordering_question::GRADING_RELATIVE_TO_CORRECT:
+                    if (isset($correctinfo[$position])) {
+                        $maxscore = (count($correctinfo) - 1);
+                        $answerid = $currentinfo[$position];
+                        $correctposition = array_search($answerid, $correctinfo);
+                        $score = ($maxscore - abs($correctposition - $position));
+                        if ($score < 0) {
+                            $score = 0;
+                        }
+                    }
+                    break;
+            }
+
+            if ($maxscore === null) {
+                // An unscored item is either an illegal item
+                // or last item of RELATIVE_NEXT_EXCLUDE_LAST
+                // or an item in an incorrect ALL_OR_NOTHING
+                // or an item from an unrecognized grading type.
+                $class = 'unscored';
+            } else {
+                if ($maxscore == 0) {
+                    $fraction = 0.0;
+                    $percent = 0;
+                } else {
+                    $fraction = ($score / $maxscore);
+                    $percent = round(100 * $fraction, 0);
+                }
+                switch (true) {
+                    case ($fraction > 0.999999):
+                        $class = 'correct';
+                        break;
+                    case ($fraction < 0.000001):
+                        $class = 'incorrect';
+                        break;
+                    case ($fraction >= 0.66):
+                        $class = 'partial66';
+                        break;
+                    case ($fraction >= 0.33):
+                        $class = 'partial33';
+                        break;
+                    default:
+                        $class = 'partial00';
+                        break;
+                }
+            }
+            $score = array($score, $maxscore, $fraction, $percent, $class);
+            $this->itemscores[$position] = $score;
+        }
+        return $this->itemscores[$position];
+    }
 
     /**
      * Start a new attempt at this question, storing any information that will
