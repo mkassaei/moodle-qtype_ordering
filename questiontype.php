@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-if (class_exists('default_questiontype')) { // Moodle 2.0
+if (class_exists('default_questiontype')) { // Moodle 2.0.
     require_once($CFG->dirroot.'/question/type/ordering/legacy/20.php');
 }
 
@@ -51,9 +51,9 @@ class qtype_ordering extends question_type {
         // Include "script.js" and/or "script.php" in the normal way.
         parent::find_standard_scripts();
 
-		if (method_exists($PAGE->requires, 'js_call_amd')) {
-			return true; // Moodle >= 2.9
-		}
+        if (method_exists($PAGE->requires, 'js_call_amd')) {
+            return true; // Moodle >= 2.9.
+        }
 
         $version = '';
         $minversion = '1.11.0'; // Moodle 2.7.
@@ -161,25 +161,25 @@ class qtype_ordering extends question_type {
         // Insert all the new answers.
         foreach ($question->answer as $i => $answer) {
 
-			$answertext = '';
-			$answerformat = 0;
-			$answeritemid = null;
+            $answertext = '';
+            $answerformat = 0;
+            $answeritemid = null;
 
             // Extract $answer fields.
             if (is_string($answer)) {
-            	// import from file
-				$answertext = $answer;
+                // Import from file.
+                $answertext = $answer;
             } else if (is_array($answer)) {
-            	// input from browser
-            	if (isset($answer['text'])) {
-					$answertext = $answer['text'];
-            	}
-            	if (isset($answer['format'])) {
-					$answerformat = $answer['format'];
-            	}
-				if (isset($answer['itemid'])) {
-					$answeritemid = $answer['itemid'];
-				}
+                // Input from browser.
+                if (isset($answer['text'])) {
+                    $answertext = $answer['text'];
+                }
+                if (isset($answer['format'])) {
+                    $answerformat = $answer['format'];
+                }
+                if (isset($answer['itemid'])) {
+                    $answeritemid = $answer['itemid'];
+                }
             }
 
             // Reduce simple <p>...</p> to plain text.
@@ -434,54 +434,59 @@ class qtype_ordering extends question_type {
         $answers = preg_split('/[\r\n]+/', $matches[6]);
         $answers = array_filter($answers);
 
-		if (empty($question)) {
-			$text = implode(PHP_EOL, $lines);
-			$text = trim($text);
-			if ($pos = strpos($text, '{')) {
-				$text = substr($text, 0, $pos);
-			}
+        if (empty($question)) {
+            $text = implode(PHP_EOL, $lines);
+            $text = trim($text);
+            if ($pos = strpos($text, '{')) {
+                $text = substr($text, 0, $pos);
+            }
 
-			// extract name
-			$name = false;
-			if (substr($text, 0, 2) == '::') {
-				$text = substr($text, 2);
-				$pos = strpos($text, '::');
-				if (is_numeric($pos)) {
-					$name = substr($text, 0, $pos);
-					$name = $format->clean_question_name($name);
-					$text = trim(substr($text, $pos + 2));
-				}
-			}
+            // Extract name.
+            $name = false;
+            if (substr($text, 0, 2) == '::') {
+                $text = substr($text, 2);
+                $pos = strpos($text, '::');
+                if (is_numeric($pos)) {
+                    $name = substr($text, 0, $pos);
+                    $name = $format->clean_question_name($name);
+                    $text = trim(substr($text, $pos + 2));
+                }
+            }
 
-			// extract question text format
-			$format = FORMAT_MOODLE;
-			if (substr($text, 0, 1) == '[') {
-				$text = substr($text, 1);
-				$pos = strpos($text, ']');
-				if (is_numeric($pos)) {
-					$format = substr($text, 0, $pos);
-					switch ($format) {
-						case 'html':     $format = FORMAT_HTML;     break;
-						case 'plain':    $format = FORMAT_PLAIN;    break;
-						case 'markdown': $format = FORMAT_MARKDOWN; break;
-						case 'moodle':   $format = FORMAT_MOODLE;   break;
-					}
-					$text = trim(substr($text, $pos + 1)); // Remove name from text.
-				}
-			}
+            // Extract question text format.
+            $format = FORMAT_MOODLE;
+            if (substr($text, 0, 1) == '[') {
+                $text = substr($text, 1);
+                $pos = strpos($text, ']');
+                if (is_numeric($pos)) {
+                    $format = substr($text, 0, $pos);
+                    switch ($format) {
+                        case 'html':
+                            $format = FORMAT_HTML;
+                            break;
+                        case 'plain':
+                            $format = FORMAT_PLAIN;
+                            break;
+                        case 'markdown':
+                            $format = FORMAT_MARKDOWN;
+                            break;
+                        case 'moodle':
+                            $format = FORMAT_MOODLE;
+                            break;
+                    }
+                    $text = trim(substr($text, $pos + 1)); // Remove name from text.
+                }
+            }
 
-			$question = new stdClass();
-			$question->name = $name;
-			$question->questiontext = $text;
-			$question->questiontextformat = $format;
-			$question->generalfeedback = '';
-			$question->generalfeedbackformat = FORMAT_MOODLE;
-		}
+            $question = new stdClass();
+            $question->name = $name;
+            $question->questiontext = $text;
+            $question->questiontextformat = $format;
+            $question->generalfeedback = '';
+            $question->generalfeedbackformat = FORMAT_MOODLE;
+        }
 
         $question->qtype = 'ordering';
-
-        // Fix empty or long question name.
-        //$question->name = $this->fix_questionname($question->name, $questionname);
 
         // Set "selectcount" field from $selectcount.
         if (is_numeric($selectcount) && $selectcount > 2 && $selectcount <= count($answers)) {
@@ -635,15 +640,24 @@ class qtype_ordering extends question_type {
         }
 
         switch ($question->questiontextformat) {
-            case FORMAT_HTML:     $output .= '[html]';     break;
-            case FORMAT_PLAIN:    $output .= '[plain]';    break;
-            case FORMAT_MARKDOWN: $output .= '[markdown]'; break;
-            case FORMAT_MOODLE:   $output .= '[moodle]';   break;
+            case FORMAT_HTML:
+                $output .= '[html]';
+                break;
+            case FORMAT_PLAIN:
+                $output .= '[plain]';
+                break;
+            case FORMAT_MARKDOWN:
+                $output .= '[markdown]';
+                break;
+            case FORMAT_MOODLE:
+                $output .= '[moodle]';
+                break;
         }
 
         $output .= $question->questiontext.'{';
 
-        list($layouttype, $selecttype, $selectcount, $gradingtype, $showgrading) = $this->extract_layout_select_count_grading($question);
+        list($layouttype, $selecttype, $selectcount, $gradingtype, $showgrading) =
+                $this->extract_layout_select_count_grading($question);
         $output .= ">$selectcount $selecttype $layouttype $gradingtype $showgrading".PHP_EOL;
 
         foreach ($question->options->answers as $answer) {
@@ -666,7 +680,8 @@ class qtype_ordering extends question_type {
         global $CFG;
         require_once($CFG->dirroot.'/question/type/ordering/question.php');
 
-        list($layouttype, $selecttype, $selectcount, $gradingtype, $showgrading) = $this->extract_layout_select_count_grading($question);
+        list($layouttype, $selecttype, $selectcount, $gradingtype, $showgrading) =
+                $this->extract_layout_select_count_grading($question);
 
         $output = '';
         $output .= "    <layouttype>$layouttype</layouttype>\n";
@@ -901,9 +916,9 @@ class qtype_ordering extends question_type {
     }
 }
 
-if (function_exists('question_register_questiontype')) { // Moodle 2.0
+if (function_exists('question_register_questiontype')) { // Moodle 2.0.
     class qtype_ordering_options_qtype extends qtype_ordering {
-        function name() {
+        public function name() {
             return 'ordering';
         }
     }
