@@ -113,32 +113,32 @@ class qtype_ordering_question extends question_graded_automatically {
         $gradingtype = $this->options->gradingtype;
         switch ($gradingtype) {
 
-            case qtype_ordering_question::GRADING_ALL_OR_NOTHING:
-            case qtype_ordering_question::GRADING_ABSOLUTE_POSITION:
-            case qtype_ordering_question::GRADING_RELATIVE_TO_CORRECT:
+            case self::GRADING_ALL_OR_NOTHING:
+            case self::GRADING_ABSOLUTE_POSITION:
+            case self::GRADING_RELATIVE_TO_CORRECT:
                 $this->correctinfo = $this->correctresponse;
                 $this->currentinfo = $this->currentresponse;
                 break;
 
-            case qtype_ordering_question::GRADING_RELATIVE_NEXT_EXCLUDE_LAST:
-            case qtype_ordering_question::GRADING_RELATIVE_NEXT_INCLUDE_LAST:
-                $lastitem = ($gradingtype == qtype_ordering_question::GRADING_RELATIVE_NEXT_INCLUDE_LAST);
+            case self::GRADING_RELATIVE_NEXT_EXCLUDE_LAST:
+            case self::GRADING_RELATIVE_NEXT_INCLUDE_LAST:
+                $lastitem = ($gradingtype == self::GRADING_RELATIVE_NEXT_INCLUDE_LAST);
                 $this->correctinfo = $this->get_next_answerids($this->correctresponse, $lastitem);
                 $this->currentinfo = $this->get_next_answerids($this->currentresponse, $lastitem);
                 break;
 
-            case qtype_ordering_question::GRADING_RELATIVE_ONE_PREVIOUS_AND_NEXT:
-            case qtype_ordering_question::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT:
-                $all = ($gradingtype == qtype_ordering_question::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT);
+            case self::GRADING_RELATIVE_ONE_PREVIOUS_AND_NEXT:
+            case self::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT:
+                $all = ($gradingtype == self::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT);
                 $this->correctinfo = $this->get_previous_and_next_answerids($this->correctresponse, $all);
                 $this->currentinfo = $this->get_previous_and_next_answerids($this->currentresponse, $all);
                 break;
 
-            case qtype_ordering_question::GRADING_LONGEST_ORDERED_SUBSET:
-            case qtype_ordering_question::GRADING_LONGEST_CONTIGUOUS_SUBSET:
+            case self::GRADING_LONGEST_ORDERED_SUBSET:
+            case self::GRADING_LONGEST_CONTIGUOUS_SUBSET:
                 $this->correctinfo = $this->correctresponse;
                 $this->currentinfo = $this->currentresponse;
-                $contiguous = ($gradingtype == qtype_ordering_question::GRADING_LONGEST_CONTIGUOUS_SUBSET);
+                $contiguous = ($gradingtype == self::GRADING_LONGEST_CONTIGUOUS_SUBSET);
                 $subset = $this->get_ordered_subset($contiguous);
                 foreach ($this->currentinfo as $position => $answerid) {
                     if (array_search($position, $subset) === false) {
@@ -190,14 +190,14 @@ class qtype_ordering_question extends question_graded_automatically {
 
             switch ($this->options->gradingtype) {
 
-                case qtype_ordering_question::GRADING_ALL_OR_NOTHING:
+                case self::GRADING_ALL_OR_NOTHING:
                     if ($this->is_all_correct()) {
                         $score = 1;
                         $maxscore = 1;
                     }
                     break;
 
-                case qtype_ordering_question::GRADING_ABSOLUTE_POSITION:
+                case self::GRADING_ABSOLUTE_POSITION:
                     if (isset($correctinfo[$position])) {
                         if ($correctinfo[$position] == $answerid) {
                             $score = 1;
@@ -206,8 +206,8 @@ class qtype_ordering_question extends question_graded_automatically {
                     }
                     break;
 
-                case qtype_ordering_question::GRADING_RELATIVE_NEXT_EXCLUDE_LAST:
-                case qtype_ordering_question::GRADING_RELATIVE_NEXT_INCLUDE_LAST:
+                case self::GRADING_RELATIVE_NEXT_EXCLUDE_LAST:
+                case self::GRADING_RELATIVE_NEXT_INCLUDE_LAST:
                     if (isset($correctinfo[$answerid])) {
                         if (isset($currentinfo[$answerid]) && $currentinfo[$answerid] == $correctinfo[$answerid]) {
                             $score = 1;
@@ -216,8 +216,8 @@ class qtype_ordering_question extends question_graded_automatically {
                     }
                     break;
 
-                case qtype_ordering_question::GRADING_RELATIVE_ONE_PREVIOUS_AND_NEXT:
-                case qtype_ordering_question::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT:
+                case self::GRADING_RELATIVE_ONE_PREVIOUS_AND_NEXT:
+                case self::GRADING_RELATIVE_ALL_PREVIOUS_AND_NEXT:
                     if (isset($correctinfo[$answerid])) {
                         $maxscore = 0;
                         $prev = $correctinfo[$answerid]->prev;
@@ -231,8 +231,8 @@ class qtype_ordering_question extends question_graded_automatically {
                     }
                     break;
 
-                case qtype_ordering_question::GRADING_LONGEST_ORDERED_SUBSET:
-                case qtype_ordering_question::GRADING_LONGEST_CONTIGUOUS_SUBSET:
+                case self::GRADING_LONGEST_ORDERED_SUBSET:
+                case self::GRADING_LONGEST_CONTIGUOUS_SUBSET:
                     if (isset($correctinfo[$position])) {
                         if (isset($currentinfo[$position])) {
                             $score = $currentinfo[$position];
@@ -241,7 +241,7 @@ class qtype_ordering_question extends question_graded_automatically {
                     }
                     break;
 
-                case qtype_ordering_question::GRADING_RELATIVE_TO_CORRECT:
+                case self::GRADING_RELATIVE_TO_CORRECT:
                     if (isset($correctinfo[$position])) {
                         $maxscore = (count($correctinfo) - 1);
                         $answerid = $currentinfo[$position];
@@ -424,7 +424,7 @@ class qtype_ordering_question extends question_graded_automatically {
         if (array_key_exists($name, $response)) {
             $items = explode(',', $response[$name]);
         } else {
-            $items = array(); // shouldn't happen !!
+            $items = array(); // ... shouldn't happen !!
         }
         $answerids = array();
         foreach ($this->answers as $answer) {
@@ -434,10 +434,10 @@ class qtype_ordering_question extends question_graded_automatically {
             if (array_key_exists($item, $answerids)) {
                 $item = $this->answers[$answerids[$item]];
                 $item = $this->html_to_text($item->answer, $item->answerformat);
-                $item = shorten_text($item, 10, true); // force truncate at 10 chars
+                $item = shorten_text($item, 10, true); // Force truncate at 10 chars.
                 $items[$i] = $item;
             } else {
-                $items[$i] = ''; // shouldn't happen !!
+                $items[$i] = ''; // ... shouldn't happen !!
             }
         }
         return implode('; ', array_filter($items));
@@ -651,10 +651,7 @@ class qtype_ordering_question extends question_graded_automatically {
         return parent::check_file_access($qa, $options, $component, $filearea, $args, $forcedownload);
     }
 
-    ///////////////////////////////////////////////////////
-    // methods from "question_graded_automatically" class
-    // see "question/type/questionbase.php"
-    ///////////////////////////////////////////////////////
+    // Methods from "question_graded_automatically" class (see "question/type/questionbase.php").
 
     /**
      * Check a request for access to a file belonging to a combined feedback field.
@@ -684,9 +681,7 @@ class qtype_ordering_question extends question_graded_automatically {
         }
     }
 
-    ///////////////////////////////////////////////////////
-    // Custom methods
-    ///////////////////////////////////////////////////////
+    // Custom methods.
 
     /**
      * Returns response mform field name
@@ -902,38 +897,38 @@ class qtype_ordering_question extends question_graded_automatically {
         // Var $subsets is the collection of all subsets within $positions.
         $subsets = array();
 
-        // loop through the values at each position
+        // Loop through the values at each position.
         foreach ($positions as $p => $value) {
 
-            // is $value a "new" value that cannot be added to any $subsets found so far
+            // Is $value a "new" value that cannot be added to any $subsets found so far?
             $isnew = true;
 
-            // an array of new and saved subsets to be added to $subsets
+            // An array of new and saved subsets to be added to $subsets.
             $new = array();
 
-            // append the current value to any subsets to which it belongs
-            // i.e. any subset whose end value is less than the current value
+            // Append the current value to any subsets to which it belongs,
+            // i.e. any subset whose end value is less than the current value.
             foreach ($subsets as $s => $subset) {
 
-                // get value at end of $subset
+                // Get value at end of $subset.
                 $end = $positions[end($subset)];
 
                 switch (true) {
 
                     case ($value == ($end + 1)):
-                        // for a contiguous value, we simply append $p to the subset
+                        // For a contiguous value, we simply append $p to the subset.
                         $isnew = false;
                         $subsets[$s][] = $p;
                         break;
 
                     case $contiguous:
-                        // if the $contiguous flag is set, we ignore non-contiguous values
+                        // If the $contiguous flag is set, we ignore non-contiguous values.
                         break;
 
                     case ($value > $end):
-                        // for a non-contiguous value, we save the subset so far,
+                        // For a non-contiguous value, we save the subset so far,
                         // because a value between $end and $value may be found later,
-                        // and then append $p to the subset
+                        // and then append $p to the subset.
                         $isnew = false;
                         $new[] = $subset;
                         $subsets[$s][] = $p;
@@ -941,29 +936,16 @@ class qtype_ordering_question extends question_graded_automatically {
                 }
             }
 
-            // if this is a "new" value, add it as a new subset
+            // If this is a "new" value, add it as a new subset.
             if ($isnew) {
                 $new[] = array($p);
             }
 
-            // append any "new" subsets that were found during this iteration
+            // Append any "new" subsets that were found during this iteration.
             if (count($new)) {
                 $subsets = array_merge($subsets, $new);
             }
         }
-
-        // remove short subsets, that are subsets of longer subsets
-        //$keys = array();
-        //foreach ($subsets as $s => $subset) {
-        //    $key = implode(',', $subset);
-        //    $search = implode(',(\d+,)*', $subset);
-        //    $search = preg_grep("/$search/", $keys);
-        //    if (count($search)) {
-        //        //unset($subsets[$s]);
-        //    } else {
-        //        //$keys[] = $key;
-        //    }
-        //}
 
         return $subsets;
     }
